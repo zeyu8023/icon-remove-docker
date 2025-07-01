@@ -185,4 +185,4 @@ with gr.Blocks(css=custom_css) as demo:
         outputs=[output_gallery, log_box, download_files, zip_file]
     )
 
-demo.launch(debug=True)
+demo.launch(server_name="0.0.0.0", server_port=7860)
