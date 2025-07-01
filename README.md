@@ -1,6 +1,6 @@
-# 🧼 icon-remove-docker
+# 🧼 图标背景去除器
 
-一个基于 [Gradio](https://gradio.app/) + [rembg](https://github.com/danielgatis/rembg) 的图标去背景工具，支持批量处理、尺寸统一、背景替换、ZIP 打包下载，并拥有 Apple 风格 UI 和移动端自适应布局。
+一个基于 [Gradio](https://gradio.app/) + [rembg](https://github.com/danielgatis/rembg) 的图标去背景工具，支持批量处理、尺寸统一、背景替换、ZIP 打包下载，并支持移动端自适应布局。
 
 > 🚀 已打包为 Docker 镜像，支持局域网访问、离线模型挂载、代理加速等高级特性。
 
@@ -30,7 +30,7 @@ cd icon-remove-docker
 
 ### 2. 准备模型（推荐）
 
-手动下载模型文件：
+自持部署时自动下载模型，你也可以选择手动下载模型文件：
 
 - [u2net.onnx](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx)
 
@@ -82,7 +82,7 @@ services:
     restart: unless-stopped
 ```
 
-> ✅ 如果你不使用代理，可移除 `HTTP_PROXY` 和 `HTTPS_PROXY`  
+> ✅ 如果你不使用代理，可移除 `HTTP_PROXY` 和 `HTTPS_PROXY`  （代理用来首次运行时下载模型）
 > ✅ 如果你不是 Linux 用户，请改为使用 `ports: - "7860:7860"` 而不是 `network_mode: host`
 
 ---
