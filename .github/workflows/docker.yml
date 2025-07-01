@@ -3,6 +3,11 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'Dockerfile'
+      - 'app.py'
+      - 'requirements.txt'
+      - '.github/workflows/**'
 
 jobs:
   build:
