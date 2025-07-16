@@ -45,20 +45,33 @@ def process_and_package(files, size, bg_color_label):
     with zipfile.ZipFile(zip_path, "w") as zipf:
         for idx, file in enumerate(files):
             try:
-                img = Image.open(file).convert("RGBA")
 
-                buf = io.BytesIO()
-                img.save(buf, format="PNG")
-                out_bytes = remove(buf.getvalue())
-                out_img = Image.open(io.BytesIO(out_bytes)).convert("RGBA")
+                 img = Image.open(file).convert("RGBA")
 
-                if size:
-                    out_img = ImageOps.fit(out_img, (size, size), method=Image.LANCZOS)
+# Step 1: 去背景
+                 buf = io.BytesIO()
+                 img.save(buf, format="PNG")
+                 out_bytes = remove(buf.getvalue())
+                 out_img = Image.open(io.BytesIO(out_bytes)).convert("RGBA")
 
+# Step 2: 裁剪透明边框
+                 bbox = out_img.getbbox()
+                 if bbox:
+                      out_img = out_img.crop(bbox)
+
+# Step 3: 居中填充到统一尺寸
+                padded = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+                x = (size - out_img.width) // 2
+                y = (size - out_img.height) // 2
+                padded.paste(out_img, (x, y))
+
+# Step 4: 背景色合成（如果不是透明）
                 if bg_color != "透明":
-                    bg = Image.new("RGBA", out_img.size, bg_color)
-                    out_img = Image.alpha_composite(bg, out_img)
+                    bg = Image.new("RGBA", padded.size, bg_color)
+                    padded = Image.alpha_composite(bg, padded)
 
+                out_img = padded
+            
                 filename = f"icon_{idx+1:03}.png"
                 file_path = os.path.join(temp_dir, filename)
                 out_img.save(file_path)
