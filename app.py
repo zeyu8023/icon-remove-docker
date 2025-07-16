@@ -35,7 +35,7 @@ def process_and_package(files, size, bg_color_label):
         logging.warning("⚠️ 未上传任何文件")
         return [], "⚠️ 请先上传图标文件", [], None
 
-    bg_color = bg_color_map.get(bg_color_label, "透明")
+    bg_color_hex = bg_color_map.get(bg_color_label, "透明")
     results = []
     file_paths = []
     log_output = ""
@@ -45,42 +45,41 @@ def process_and_package(files, size, bg_color_label):
     with zipfile.ZipFile(zip_path, "w") as zipf:
         for idx, file in enumerate(files):
             try:
+                # Step 1: 打开原图
+                img = Image.open(file).convert("RGBA")
 
-                 img = Image.open(file).convert("RGBA")
+                # Step 2: 去背景
+                buf = io.BytesIO()
+                img.save(buf, format="PNG")
+                out_bytes = remove(buf.getvalue())
+                out_img = Image.open(io.BytesIO(out_bytes)).convert("RGBA")
 
-# Step 1: 去背景
-                 buf = io.BytesIO()
-                 img.save(buf, format="PNG")
-                 out_bytes = remove(buf.getvalue())
-                 out_img = Image.open(io.BytesIO(out_bytes)).convert("RGBA")
+                # Step 3: 裁剪透明边框
+                bbox = out_img.getbbox()
+                if bbox:
+                    out_img = out_img.crop(bbox)
 
-# Step 2: 裁剪透明边框
-                 bbox = out_img.getbbox()
-                 if bbox:
-                      out_img = out_img.crop(bbox)
-
-# Step 3: 居中填充到统一尺寸
+                # Step 4: 居中填充到统一尺寸
                 padded = Image.new("RGBA", (size, size), (0, 0, 0, 0))
                 x = (size - out_img.width) // 2
                 y = (size - out_img.height) // 2
                 padded.paste(out_img, (x, y))
 
-# Step 4: 背景色合成（如果不是透明）
-                if bg_color != "透明":
-                    bg = Image.new("RGBA", padded.size, bg_color)
+                # Step 5: 背景色合成（如果不是透明）
+                if bg_color_hex != "透明":
+                    bg = Image.new("RGBA", padded.size, bg_color_hex)
                     padded = Image.alpha_composite(bg, padded)
 
-                out_img = padded
-            
+                # Step 6: 保存结果
                 filename = f"icon_{idx+1:03}.png"
                 file_path = os.path.join(temp_dir, filename)
-                out_img.save(file_path)
+                padded.save(file_path)
 
-                results.append(out_img)
+                results.append(padded)
                 file_paths.append(file_path)
                 zipf.write(file_path, arcname=filename)
 
-                msg = f"✅ {filename} 处理完成"
+                msg = f"✅ {filename} 处理完成（原始尺寸：{img.size} → 裁剪后：{out_img.size}）"
                 log_output += msg + "\n"
                 logging.info(msg)
 
