@@ -59,18 +59,21 @@ def process_and_package(files, size, bg_color_label):
                 if bbox:
                     out_img = out_img.crop(bbox)
 
-                # Step 4: 居中填充到统一尺寸
+                # Step 4: 等比例缩放图标到目标尺寸
+                out_img.thumbnail((size, size), Image.LANCZOS)
+
+                # Step 5: 居中填充到统一尺寸
                 padded = Image.new("RGBA", (size, size), (0, 0, 0, 0))
                 x = (size - out_img.width) // 2
                 y = (size - out_img.height) // 2
                 padded.paste(out_img, (x, y))
 
-                # Step 5: 背景色合成（如果不是透明）
+                # Step 6: 背景色合成（如果不是透明）
                 if bg_color_hex != "透明":
                     bg = Image.new("RGBA", padded.size, bg_color_hex)
                     padded = Image.alpha_composite(bg, padded)
 
-                # Step 6: 保存结果
+                # Step 7: 保存结果
                 filename = f"icon_{idx+1:03}.png"
                 file_path = os.path.join(temp_dir, filename)
                 padded.save(file_path)
